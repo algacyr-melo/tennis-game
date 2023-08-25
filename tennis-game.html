@@ -7,14 +7,15 @@
     <body>
         <canvas id="gameCanvas" width="800" height="600"></canvas>
         <script>
-            let canvas;
-            let canvasContext;
-            let ballX = 75, ballY = 75;
-            let ballSpeedX = 6;
-            let ballSpeedY = 4;
+            let canvas, canvasContext;
+
+            let ballX = ballY = 75;
+
+            let ballSpeedX = 6, ballSpeedY = 8;
           
-            let paddle1Y;
+            let paddle1Y = paddle2Y = 250;
             const PADDLE_HEIGHT = 100;
+            const PADDLE_THICKNESS = 10;
 
             window.onload = function() {
                 // save the canvas for dimensions, and its 2d context for drawing to it
@@ -23,7 +24,7 @@
 
                 canvas.addEventListener('mousemove', function(evt) {
                     let mousePos = calculateMousePos(evt);
-                    paddle1Y = mousePos.y - (PADDLE_HEIGHT/2);
+                    paddle2Y = mousePos.y - (PADDLE_HEIGHT/2);
                 });
 
                 const framesPerSecond = 30;
@@ -46,12 +47,35 @@
                 };
             }
 
+            function ballReset() {
+                ballX = canvas.width / 2;
+                ballY = canvas.height / 2;
+                ballSpeedX *= -1;
+            }
+
             function moveEverything() {
-                if (ballX > canvas.width || ballX < 0) {
-                    ballSpeedX *= -1;
+                if (ballX > canvas.width) { // if ball has moved beyond right edge
+                    if (ballY > paddle2Y && ballY < paddle2Y + PADDLE_HEIGHT) {
+                        ballSpeedX *= -1; // reverse ball's horizontal speed
+                    }
+                    else {
+                        ballReset();
+                    }
                 }
-                if (ballY > canvas.height || ballY < 0) {
-                    ballSpeedY *= -1;
+                if (ballX < 0) { // if ball has moved beyond left edge
+                    if (ballY > paddle1Y && ballY < paddle1Y + PADDLE_HEIGHT) { // if the ball hits the paddle1
+                        ballSpeedX *= -1; // reverse ball's horizontal speed
+                    }
+                    else {
+                        ballReset();
+                    }
+                }
+
+                if (ballY > canvas.height) { // if ball has moved beyond bottom edge
+                    ballSpeedY *= -1; // reverse ball's vertical speed
+                }
+                if (ballY < 0) { // if ball has moved beyond top edge
+                    ballSpeedY *= -1; // reverse ball's vertical speed
                 }
                 ballX += ballSpeedX;
                 ballY += ballSpeedY;
@@ -74,10 +98,16 @@
                 colorRect(0, 0, canvas.width, canvas.height, 'black');
 
                 // draw a white rectangle to use as the left player's paddle
-                colorRect(0, paddle1Y, 10, PADDLE_HEIGHT, 'white');
+                colorRect(0, paddle1Y, PADDLE_THICKNESS, PADDLE_HEIGHT, 'white');
+
+                // draw a white rectangle to use as the computer's paddle
+                colorRect(canvas.width - PADDLE_THICKNESS, paddle2Y, PADDLE_THICKNESS, PADDLE_HEIGHT, 'white');
 
                 // draw the ball
                 colorCircle(ballX, ballY, 10, 'white');
+
+                // draw UI for score
+                canvasContext.fillText("[game score]", 100, 100);
 
             }
 
