@@ -9,13 +9,14 @@
         <script>
             let canvas, canvasContext;
 
-            let ballX = ballY = 75;
-
+            let ballX = 75, ballY = 75;
             let ballSpeedX = 6, ballSpeedY = 8;
-          
-            let paddle1Y = paddle2Y = 250;
+
+            let paddle1Y = 250, paddle2Y = 250;
             const PADDLE_HEIGHT = 100;
             const PADDLE_THICKNESS = 10;
+
+            let paddle1Score = paddle2Score = 0;
 
             window.onload = function() {
                 // save the canvas for dimensions, and its 2d context for drawing to it
@@ -24,7 +25,7 @@
 
                 canvas.addEventListener('mousemove', function(evt) {
                     let mousePos = calculateMousePos(evt);
-                    paddle2Y = mousePos.y - (PADDLE_HEIGHT/2);
+                    paddle1Y = mousePos.y - (PADDLE_HEIGHT/2);
                 });
 
                 const framesPerSecond = 30;
@@ -48,25 +49,34 @@
             }
 
             function ballReset() {
-                ballX = canvas.width / 2;
-                ballY = canvas.height / 2;
-                ballSpeedX *= -1;
+                ballSpeedX = -ballSpeedX;
+
+                ballX = canvas.width/2;
+                ballY = canvas.height/2;
             }
 
             function moveEverything() {
-                if (ballX > canvas.width) { // if ball has moved beyond right edge
-                    if (ballY > paddle2Y && ballY < paddle2Y + PADDLE_HEIGHT) {
+                if (ballX < 0) { // if ball has moved beyond left edge
+                    if (ballY >= paddle1Y && ballY <= paddle1Y+PADDLE_HEIGHT) { // if the ball hits the paddle1
                         ballSpeedX *= -1; // reverse ball's horizontal speed
+
+                        const deltaY = ballY-(paddle1Y+PADDLE_HEIGHT/2);
+                        ballSpeedY = deltaY * 0.35;
                     }
                     else {
+                        paddle2Score++;
                         ballReset();
                     }
                 }
-                if (ballX < 0) { // if ball has moved beyond left edge
-                    if (ballY > paddle1Y && ballY < paddle1Y + PADDLE_HEIGHT) { // if the ball hits the paddle1
+                if (ballX > canvas.width) { // if ball has moved beyond right edge
+                    if (ballY >= paddle2Y && ballY <= paddle2Y+PADDLE_HEIGHT) { // if ball hits the paddle2
                         ballSpeedX *= -1; // reverse ball's horizontal speed
+
+                        const deltaY = ballY-(paddle2Y+PADDLE_HEIGHT/2);
+                        ballSpeedY = deltaY * 0.35;
                     }
                     else {
+                        paddle1Score++;
                         ballReset();
                     }
                 }
@@ -77,6 +87,7 @@
                 if (ballY < 0) { // if ball has moved beyond top edge
                     ballSpeedY *= -1; // reverse ball's vertical speed
                 }
+
                 ballX += ballSpeedX;
                 ballY += ballSpeedY;
             }
@@ -107,7 +118,8 @@
                 colorCircle(ballX, ballY, 10, 'white');
 
                 // draw UI for score
-                canvasContext.fillText("[game score]", 100, 100);
+                canvasContext.fillText(paddle1Score, 100, 100);
+                canvasContext.fillText(paddle2Score, canvas.width - 100, 100);
 
             }
 
