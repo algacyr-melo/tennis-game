@@ -7,22 +7,43 @@
     <body>
         <canvas id="gameCanvas" width="800" height="600"></canvas>
         <script>
-            var canvas;
-            var canvasContext;
-            var ballX = 75, ballY = 75;
-            var ballSpeedX = 6;
-            var ballSpeedY = 4;
+            let canvas;
+            let canvasContext;
+            let ballX = 75, ballY = 75;
+            let ballSpeedX = 6;
+            let ballSpeedY = 4;
+          
+            let paddle1Y;
+            const PADDLE_HEIGHT = 100;
 
             window.onload = function() {
                 // save the canvas for dimensions, and its 2d context for drawing to it
                 canvas = document.getElementById('gameCanvas');
                 canvasContext = canvas.getContext('2d');
 
-                let framesPerSecond = 30;
+                canvas.addEventListener('mousemove', function(evt) {
+                    let mousePos = calculateMousePos(evt);
+                    paddle1Y = mousePos.y - (PADDLE_HEIGHT/2);
+                });
+
+                const framesPerSecond = 30;
                 setInterval(function() {
                     moveEverything();
                     drawEverything();
                 }, 1000/framesPerSecond);
+            }
+
+            function calculateMousePos(evt) {
+                const rect = canvas.getBoundingClientRect();
+                const root = document.documentElement;
+
+                const mouseX = evt.clientX - rect.left - root.scrollLeft;
+                const mouseY = evt.clientY - rect.top - root.scrollTop;
+
+                return {
+                    x: mouseX,
+                    y: mouseY
+                };
             }
 
             function moveEverything() {
@@ -36,15 +57,30 @@
                 ballY += ballSpeedY;
             }
 
-            function drawEverything() {
-                canvasContext.fillStyle = 'black';
-                canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+            function colorRect(topLeftX, topLeftY, boxWidth, boxHeight, fillColor) {
+                canvasContext.fillStyle = fillColor;
+                canvasContext.fillRect(topLeftX, topLeftY, boxWidth, boxHeight);
+            }
 
-                canvasContext.fillStyle = 'white';
+            function colorCircle(centerX, centerY, radius, fillColor) {
+                canvasContext.fillStyle = fillColor;
                 canvasContext.beginPath();
-                canvasContext.arc(ballX, ballY, 10, 0, Math.PI*2, true);
+                canvasContext.arc(centerX, centerY, radius, 0, Math.PI*2, true);
                 canvasContext.fill();
             }
+
+            function drawEverything() {
+                // clear the game view by filling it with black
+                colorRect(0, 0, canvas.width, canvas.height, 'black');
+
+                // draw a white rectangle to use as the left player's paddle
+                colorRect(0, paddle1Y, 10, PADDLE_HEIGHT, 'white');
+
+                // draw the ball
+                colorCircle(ballX, ballY, 10, 'white');
+
+            }
+
         </script>
 
     </body>
