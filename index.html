@@ -22,9 +22,15 @@
         // set up the speed of computer's paddle
         const PADDLE_COMPUTER_MOVE_SPEED = 8;
 
+        const WINNING_SCORE = 3;
+
+        let showingWinScreen = false;
+
         window.onload = function() {
             canvas = document.getElementById('gameCanvas');
             canvasContext = canvas.getContext('2d');
+
+            canvasContext.textAlign = 'center';
 
             // set up the game logic and render to happen 30 times per second
             const framesPerSecond = 30;
@@ -37,6 +43,17 @@
                 let mousePos = calculateMousePos(evt);
                 paddle1Y = mousePos.y - (PADDLE_HEIGHT/2);
             });
+
+            canvas.addEventListener('mousedown', handleMouseClick);
+        }
+
+        function handleMouseClick() {
+            if (showingWinScreen) {
+                showingWinScreen = false;
+                paddle1Score = 0;
+                paddle2Score = 0;
+                ballReset();
+            }
         }
 
         function moveComputerPaddle() {
@@ -68,6 +85,11 @@
         }
 
         function ballReset() {
+            // check if someone wins
+            if (paddle1Score >= WINNING_SCORE || paddle2Score >= WINNING_SCORE) {
+                showingWinScreen = true;
+            }
+
             // reverse ball heading, so whoever scored "serves"
             ballSpeedX = -ballSpeedX;
 
@@ -77,6 +99,10 @@
         }
 
         function moveEverything() {
+            if (showingWinScreen) {
+                return ;
+            }
+
             moveComputerPaddle();
 
             if (ballX < 0) { // if ball has moved beyond left edge
@@ -127,25 +153,48 @@
             canvasContext.fill();
         }
 
+        function colorText(text, textX, textY, fillColor) {
+            canvasContext.fillStyle = fillColor;
+            canvasContext.fillText(text, textX, textY);
+        }
+
+        function drawNet() {
+            for (let y = 10; y < canvas.height; y += 40) {
+                colorRect(canvas.width/2-1, y, 2, 20, 'white');
+            }
+        }
+
         function drawEverything() {
+
             // clear the game view by filling it with black
             colorRect(0, 0, canvas.width, canvas.height, 'black');
 
-            // draw a white rectangle to use as the left player's paddle
-            colorRect(0, paddle1Y, PADDLE_THICKNESS, PADDLE_HEIGHT, 'white');
+            if (showingWinScreen) {
+                if (paddle1Score >= WINNING_SCORE) {
+                    colorText("LEFT PLAYER WINS!", canvas.width/2, canvas.height/2, 'white');
+                } else if (paddle2Score >= WINNING_SCORE) {
+                    colorText("RIGHT PLAYER WINS!", canvas.width/2, canvas.height/2, 'white');
+                }
+                colorText("CLICK TO CONTINUE", canvas.width/2, canvas.height - 100, 'white');
+            } else {
+                // draw a white rectangle to use as the left player's paddle
+                colorRect(0, paddle1Y, PADDLE_THICKNESS, PADDLE_HEIGHT, 'white');
 
-            // draw a white rectangle to use as the right player's paddle
-            colorRect(canvas.width - PADDLE_THICKNESS, paddle2Y,
-                PADDLE_THICKNESS, PADDLE_HEIGHT, 'white');
+                // draw a white rectangle to use as the right player's paddle
+                colorRect(canvas.width - PADDLE_THICKNESS, paddle2Y,
+                    PADDLE_THICKNESS, PADDLE_HEIGHT, 'white');
 
-            // draw the ball
-            colorCircle(ballX, ballY, 10, 'white');
+                // draw white dashed line on the middle field
+                drawNet();
+
+                // draw the ball
+                colorCircle(ballX, ballY, 10, 'white');
+            }
 
             // draw text on screen - will be used for score
             canvasContext.fillText(paddle1Score, 100, 100);
             canvasContext.fillText(paddle2Score, canvas.width - 100, 100);
         }
-
     </script>
 
 </body>
