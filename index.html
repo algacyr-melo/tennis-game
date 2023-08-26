@@ -1,130 +1,153 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
-        <meta content="utf-8" http-equiv="enconding">
-    </head>
-    <body>
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
-        <script>
-            let canvas, canvasContext;
+<head>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="enconding">
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <script>
+        // save the canvas for dimensions, and its 2d context for drawing to it
+        let canvas, canvasContext;
 
-            let ballX = 75, ballY = 75;
-            let ballSpeedX = 6, ballSpeedY = 8;
+        // variables to keep track of ball position
+        let ballX = 75, ballY = 75;
+        let ballSpeedX = 6, ballSpeedY = 8;
 
-            let paddle1Y = 250, paddle2Y = 250;
-            const PADDLE_HEIGHT = 100;
-            const PADDLE_THICKNESS = 10;
+        let paddle1Score = 0, paddle2Score = 0;
+        let paddle1Y = 250, paddle2Y = 250;
+        const PADDLE_HEIGHT = 100
+        const PADDLE_THICKNESS = 10;
 
-            let paddle1Score = paddle2Score = 0;
+        // set up the speed of computer's paddle
+        const PADDLE_COMPUTER_MOVE_SPEED = 8;
 
-            window.onload = function() {
-                // save the canvas for dimensions, and its 2d context for drawing to it
-                canvas = document.getElementById('gameCanvas');
-                canvasContext = canvas.getContext('2d');
+        window.onload = function() {
+            canvas = document.getElementById('gameCanvas');
+            canvasContext = canvas.getContext('2d');
 
-                canvas.addEventListener('mousemove', function(evt) {
-                    let mousePos = calculateMousePos(evt);
-                    paddle1Y = mousePos.y - (PADDLE_HEIGHT/2);
-                });
+            // set up the game logic and render to happen 30 times per second
+            const framesPerSecond = 30;
+            setInterval(function() {
+                moveEverything();
+                drawEverything();
+            }, 1000/framesPerSecond);
 
-                const framesPerSecond = 30;
-                setInterval(function() {
-                    moveEverything();
-                    drawEverything();
-                }, 1000/framesPerSecond);
+            canvas.addEventListener('mousemove', function(evt) {
+                let mousePos = calculateMousePos(evt);
+                paddle1Y = mousePos.y - (PADDLE_HEIGHT/2);
+            });
+        }
+
+        function moveComputerPaddle() {
+            const AI_SIT_STILL_MARGIN = 35;
+            const paddle2Center = paddle2Y + (PADDLE_HEIGHT/2);
+            const topChaseLine = paddle2Center - AI_SIT_STILL_MARGIN;
+            const bottomChaseLine = paddle2Center + AI_SIT_STILL_MARGIN;
+
+            if (ballY < topChaseLine) { // if ball is ABOVE the center area of paddle2
+                paddle2Y -= PADDLE_COMPUTER_MOVE_SPEED; // move paddle up 
             }
-
-            function calculateMousePos(evt) {
-                const rect = canvas.getBoundingClientRect();
-                const root = document.documentElement;
-
-                const mouseX = evt.clientX - rect.left - root.scrollLeft;
-                const mouseY = evt.clientY - rect.top - root.scrollTop;
-
-                return {
-                    x: mouseX,
-                    y: mouseY
-                };
+            if (ballY > bottomChaseLine) { // if ball is BELOW the center area of paddle2
+                paddle2Y += PADDLE_COMPUTER_MOVE_SPEED; // move paddle down
             }
+        }
 
-            function ballReset() {
-                ballSpeedX = -ballSpeedX;
+        function calculateMousePos(evt) {
+            const rect = canvas.getBoundingClientRect();
+            const root = document.documentElement;
 
-                ballX = canvas.width/2;
-                ballY = canvas.height/2;
-            }
+            // account for the margins, canvas position on page, scroll amount, etc.
+            const mouseX = evt.clientX - rect.left - root.scrollLeft;
+            const mouseY = evt.clientY - rect.top - root.scrollTop;
 
-            function moveEverything() {
-                if (ballX < 0) { // if ball has moved beyond left edge
-                    if (ballY >= paddle1Y && ballY <= paddle1Y+PADDLE_HEIGHT) { // if the ball hits the paddle1
-                        ballSpeedX *= -1; // reverse ball's horizontal speed
+            return {
+                x: mouseX,
+                y: mouseY
+            };
+        }
 
-                        const deltaY = ballY-(paddle1Y+PADDLE_HEIGHT/2);
-                        ballSpeedY = deltaY * 0.35;
-                    }
-                    else {
-                        paddle2Score++;
-                        ballReset();
-                    }
+        function ballReset() {
+            // reverse ball heading, so whoever scored "serves"
+            ballSpeedX = -ballSpeedX;
+
+            // center ball on the screen
+            ballX = canvas.width/2;
+            ballY = canvas.height/2;
+        }
+
+        function moveEverything() {
+            moveComputerPaddle();
+
+            if (ballX < 0) { // if ball has moved beyond left edge
+                if (ballY >= paddle1Y && ballY <= paddle1Y+PADDLE_HEIGHT) { // if the ball hits the paddle1
+                    ballSpeedX *= -1; // reverse ball's horizontal speed
+
+                    const deltaY = ballY-(paddle1Y+PADDLE_HEIGHT/2);
+                    ballSpeedY = deltaY * 0.35;
                 }
-                if (ballX > canvas.width) { // if ball has moved beyond right edge
-                    if (ballY >= paddle2Y && ballY <= paddle2Y+PADDLE_HEIGHT) { // if ball hits the paddle2
-                        ballSpeedX *= -1; // reverse ball's horizontal speed
-
-                        const deltaY = ballY-(paddle2Y+PADDLE_HEIGHT/2);
-                        ballSpeedY = deltaY * 0.35;
-                    }
-                    else {
-                        paddle1Score++;
-                        ballReset();
-                    }
+                else {
+                    paddle2Score++;
+                    ballReset();
                 }
+            }
+            if (ballX > canvas.width) { // if ball has moved beyond right edge
+                if (ballY >= paddle2Y && ballY <= paddle2Y+PADDLE_HEIGHT) { // if ball hits the paddle2
+                    ballSpeedX *= -1; // reverse ball's horizontal speed
 
-                if (ballY > canvas.height) { // if ball has moved beyond bottom edge
-                    ballSpeedY *= -1; // reverse ball's vertical speed
+                    const deltaY = ballY-(paddle2Y+PADDLE_HEIGHT/2);
+                    ballSpeedY = deltaY * 0.35;
                 }
-                if (ballY < 0) { // if ball has moved beyond top edge
-                    ballSpeedY *= -1; // reverse ball's vertical speed
+                else {
+                    paddle1Score++;
+                    ballReset();
                 }
-
-                ballX += ballSpeedX;
-                ballY += ballSpeedY;
             }
 
-            function colorRect(topLeftX, topLeftY, boxWidth, boxHeight, fillColor) {
-                canvasContext.fillStyle = fillColor;
-                canvasContext.fillRect(topLeftX, topLeftY, boxWidth, boxHeight);
+            if (ballY > canvas.height) { // if ball has moved beyond bottom edge
+                ballSpeedY *= -1; // reverse ball's vertical speed
+            }
+            if (ballY < 0) { // if ball has moved beyond top edge
+                ballSpeedY *= -1; // reverse ball's vertical speed
             }
 
-            function colorCircle(centerX, centerY, radius, fillColor) {
-                canvasContext.fillStyle = fillColor;
-                canvasContext.beginPath();
-                canvasContext.arc(centerX, centerY, radius, 0, Math.PI*2, true);
-                canvasContext.fill();
-            }
+            ballX += ballSpeedX;
+            ballY += ballSpeedY;
+        }
 
-            function drawEverything() {
-                // clear the game view by filling it with black
-                colorRect(0, 0, canvas.width, canvas.height, 'black');
+        function colorRect(topLeftX, topLeftY, boxWidth, boxHeight, fillColor) {
+            canvasContext.fillStyle = fillColor;
+            canvasContext.fillRect(topLeftX, topLeftY, boxWidth, boxHeight);
+        }
 
-                // draw a white rectangle to use as the left player's paddle
-                colorRect(0, paddle1Y, PADDLE_THICKNESS, PADDLE_HEIGHT, 'white');
+        function colorCircle(centerX, centerY, radius, fillColor) {
+            canvasContext.fillStyle = fillColor;
+            canvasContext.beginPath();
+            canvasContext.arc(centerX, centerY, radius, 0, Math.PI*2, true);
+            canvasContext.fill();
+        }
 
-                // draw a white rectangle to use as the computer's paddle
-                colorRect(canvas.width - PADDLE_THICKNESS, paddle2Y, PADDLE_THICKNESS, PADDLE_HEIGHT, 'white');
+        function drawEverything() {
+            // clear the game view by filling it with black
+            colorRect(0, 0, canvas.width, canvas.height, 'black');
 
-                // draw the ball
-                colorCircle(ballX, ballY, 10, 'white');
+            // draw a white rectangle to use as the left player's paddle
+            colorRect(0, paddle1Y, PADDLE_THICKNESS, PADDLE_HEIGHT, 'white');
 
-                // draw UI for score
-                canvasContext.fillText(paddle1Score, 100, 100);
-                canvasContext.fillText(paddle2Score, canvas.width - 100, 100);
+            // draw a white rectangle to use as the right player's paddle
+            colorRect(canvas.width - PADDLE_THICKNESS, paddle2Y,
+                PADDLE_THICKNESS, PADDLE_HEIGHT, 'white');
 
-            }
+            // draw the ball
+            colorCircle(ballX, ballY, 10, 'white');
 
-        </script>
+            // draw text on screen - will be used for score
+            canvasContext.fillText(paddle1Score, 100, 100);
+            canvasContext.fillText(paddle2Score, canvas.width - 100, 100);
+        }
 
-    </body>
+    </script>
+
+</body>
 
 </html>
