@@ -5,7 +5,7 @@ Early 1970's Arcade-Style
 ## Usage
 
 <p>
-    CTRL+CLICK to
+    ctrl + click to
     <a href="https://algacyr-melo.github.io/tennis-game/">
         start the game
     </a>
