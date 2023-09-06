@@ -2,7 +2,7 @@
 
 Early 1970's Arcade-Style
 
-[Start Game](https://algacyr-melo.github.io/tennis-game/){:target="_blank"}
+<a href="https://algacyr-melo.github.io/tennis-game/" target="blank">Start Game</a>
 
 ## Visuals
 
