@@ -2,10 +2,15 @@
 
 Early 1970's Arcade-Style
 
-[Click here to play](https://algacyr-melo.github.io/tennis-game/)
+<a href="https://algacyr-melo.github.io/tennis-game/" target="_blank">
+Start Game
+</a>
 
 ## Visuals
 
-![Gameplay screen](gameplay.png)
+Gameplay
+![Gameplay screen](gameplay.png)  
+
+Win Screen
 ![Win screen](win.png)
 
